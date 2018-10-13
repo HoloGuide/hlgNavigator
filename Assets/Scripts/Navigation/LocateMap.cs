@@ -15,7 +15,6 @@ using HoloToolkit.Unity.InputModule;
 public class LocateMap : MonoBehaviour
 {
     public string AnchorID;
-    public string AnchorFileName;
 
     private GestureRecognizer m_gr;
     private WorldAnchorStore m_anchorStore;
@@ -23,7 +22,7 @@ public class LocateMap : MonoBehaviour
 
     private AnchorSaveManager m_anchorSaveManager;
 
-    private void Start()
+    public void Locate()
     {
         m_gazeManager = GazeManager.Instance;
 
@@ -121,7 +120,7 @@ public class LocateMap : MonoBehaviour
             Destroy(worldAnchor);
         }
 
-        if (m_anchorStore.GetAllIds().Contains(AnchorID))
+        if (m_anchorStore != null && m_anchorStore.GetAllIds().Contains(AnchorID))
         {
             if (m_anchorStore.Delete(AnchorID))
             {

@@ -5,7 +5,7 @@ using HoloToolkit.Unity.SpatialMapping;
 public class RoomLoader : MonoBehaviour
 {
     public bool DrawMesh = false;
-    public string FileName;
+    public string RoomId;
     public Material RenderMaterial;
 
     private bool m_prevDrawMesh;
@@ -19,15 +19,15 @@ public class RoomLoader : MonoBehaviour
 
     public bool Load()
     {
-        bool errored = FileName == null;
+        bool errored = RoomId == null;
 
         if (!errored)
         {
             try
             {
-                var meshes = MeshSaver.Load(FileName);
+                var meshes = MeshSaver.Load(RoomId);
 
-                for (int iMesh = 0; iMesh < meshes.Count; iMesh++)
+                for (int iMesh = 0; iMesh <  meshes.Count; iMesh++)
                 {
                     var obj = new GameObject("mesh-" + iMesh);
                     obj.transform.SetParent(gameObject.transform);

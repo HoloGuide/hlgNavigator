@@ -57,7 +57,7 @@ public class AVGLine : Singleton<AVGLine>
             ).ToList();
 
         // 回帰直線を表示
-        if (LineVects.Count > 0)
+        if (LineVects.Count > 0 && m_lineRenderer != null)
         {
             m_lineRenderer.positionCount = LineVects.Count;
             m_lineRenderer.SetPositions(LineVects.ToArray());

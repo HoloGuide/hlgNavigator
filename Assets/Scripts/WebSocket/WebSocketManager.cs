@@ -15,12 +15,16 @@ using Windows.Networking.Connectivity;
 
 public class WebSocketManager : Singleton<WebSocketManager>
 {
-    public string URI { get; private set; }
-    public bool ChangeScene = false;
+    public NavigationController navigationController;
+    public string DebugAddress = "";
     public bool Retry = false;
-    public bool IsDebug = false;
+
+    public string URI { get; private set; }
 
     private const float RECONNECT_INTERVAL = 10.0f; // s
+    private bool Connected = false;
+
+    private Action actionDoMainThread = null;
 
     private WebSocket _ws;
 
@@ -28,11 +32,17 @@ public class WebSocketManager : Singleton<WebSocketManager>
     {
         if (Application.internetReachability != NetworkReachability.NotReachable)
         {
-            var my_ip_separated = GetIPAddress().Split('.');
+            if (string.IsNullOrEmpty(DebugAddress))
+            {
+                var my_ip_separated = GetIPAddress().Split('.');
 
-            var ip_dst = string.Join(".", my_ip_separated.Take(3)) + ".1";
+                var ip_dst = string.Join(".", my_ip_separated.Take(3)) + ".1";
 
-            URI = "ws://" + ip_dst + ":8080/ws";
+                URI = "ws://" + ip_dst + ":8080/ws";
+            } else
+            {
+                URI = "ws://" + DebugAddress + ":8080/ws";
+            }
 
             Debug.Log(URI);
 
@@ -40,15 +50,13 @@ public class WebSocketManager : Singleton<WebSocketManager>
         }
     }
 
-    private void OnMessage(object sender, MessageEventArgs e)
+    private void Update()
     {
-        Debug.Log(e.Data);
-
-        if (SceneManager.GetActiveScene().name == "Navigation")
+        if (actionDoMainThread != null)
         {
-            JsonParser.Instance.ParseJson(e.Data);
+            actionDoMainThread.Invoke();
+            actionDoMainThread = null;
         }
-
     }
 
     public void Connect(string uri)
@@ -67,18 +75,18 @@ public class WebSocketManager : Singleton<WebSocketManager>
         _ws = new WebSocket(URI);
 
         // 文字列受信
-        _ws.OnMessage += OnMessage;
+        _ws.OnMessage += (s, e) =>
+        {
+            // Debug.Log(e.Data);
+            JsonParser.Instance.ParseJson(e.Data);
+        };
 
         // サーバー接続完了
         _ws.OnOpen += (s, e) =>
         {
             Debug.Log("Connected.");
-
-            if (ChangeScene)
-            {
-                SceneManager.LoadScene("Navigation");
-            }
-
+            Connected = true;
+            navigationController.OnConnected();
         };
 
         // 接続断の発生
@@ -88,8 +96,11 @@ public class WebSocketManager : Singleton<WebSocketManager>
 
             if (Retry)
             {
-                Debug.Log(" Reconnecting...");
-                Invoke("Connect", RECONNECT_INTERVAL);
+                Debug.Log("Reconnecting...");
+                actionDoMainThread = () =>
+                {
+                    Invoke("Connect", RECONNECT_INTERVAL);
+                };
             }
         };
 
@@ -97,11 +108,22 @@ public class WebSocketManager : Singleton<WebSocketManager>
         _ws.OnClose += (s, e) =>
         {
             Debug.Log("Closed.");
+
+            if (Connected)
+            {
+                navigationController.OnDisconnected();
+            }
+            else if (Retry)
+            {
+                Debug.Log("Reconnecting...");
+                Invoke("Connect", RECONNECT_INTERVAL);
+            }
+            
+
         };
         
         // サーバー接続開始
         _ws.ConnectAsync();
-
     }
 
     public static string GetIPAddress()
