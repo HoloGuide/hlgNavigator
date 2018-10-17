@@ -6,11 +6,12 @@ using UnityEngine.UI;
 
 public class LogDisplay : MonoBehaviour
 {
-    public Text Label = null;
-    public bool MultiLine = false;
+    public List<Text> Labels = new List<Text>();
     public int MaxLine = 15;
+    public int MaxCh = 50;
 
-    private List<string> logs = new List<string>();
+    private List<string> logQueue = new List<string>();
+    private string Log = "";
 
     private void Awake()
     {
@@ -24,42 +25,35 @@ public class LogDisplay : MonoBehaviour
 
     private void Update()
     {
-        if (Label == null) return;
-        if (logs.Count == 0) return;
+        if (Labels.Count == 0) return;
+        if (logQueue.Count == 0) return;
 
-        if (!Label.gameObject.activeInHierarchy)
+        foreach (var log in logQueue)
         {
-            Label.gameObject.SetActive(true);
-        }
-
-        foreach (var log in logs)
-        {
-            if (Label.text != "" && MultiLine)
+            var _log = log.Substring(0, Math.Min(MaxCh, log.Length));
+            Log = _log + Environment.NewLine + Log;
+            var lines = Log.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            if (lines.Count() > MaxLine)
             {
-                string text = Label.text;
-
-                text = log + Environment.NewLine + text;
-
-                var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                if (lines.Count() > MaxLine)
-                {
-                    text = string.Join(Environment.NewLine, lines.Where(x => x != lines.Last()));
-                }
-
-                Label.text = text;
-            }
-            else
-            {
-                Label.text = log;
+                Log = string.Join(Environment.NewLine, lines.Where(x => x != lines.Last()));
             }
         }
+        logQueue.Clear();
 
+        foreach (var label in Labels)
+        {
+            if (label == null) continue;
+            if (!label.gameObject.activeInHierarchy)
+            {
+                label.gameObject.SetActive(true);
+            }
 
-        logs.Clear();
+            label.text = Log;
+        }
     }
 
     private void HandleLog(string logText, string stackTrace, LogType type)
     {
-        logs.Add(logText);
+        logQueue.Add(logText);
     }
 }

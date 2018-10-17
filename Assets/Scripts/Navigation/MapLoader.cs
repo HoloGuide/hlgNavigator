@@ -27,10 +27,10 @@ public class MapLoader
         }
     }
 
-    public static Map Load(string jsonPath)
+    public static Map Load(string filename)
     {
         string json = "";
-        using (System.IO.Stream stream = OpenFileHelper.OpenFileForRead(SavePath, "map_test.json"))
+        using (System.IO.Stream stream = OpenFileHelper.OpenFileForRead(SavePath, filename))
         {
             byte[] _data = new byte[stream.Length];
             stream.Read(_data, 0, (int)stream.Length);

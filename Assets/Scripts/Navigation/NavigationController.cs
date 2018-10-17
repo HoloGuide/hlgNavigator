@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using HoloToolkit.Unity.InputModule;
+using System;
 
 public class NavigationController : MonoBehaviour, IInputClickHandler
 {
@@ -11,6 +12,7 @@ public class NavigationController : MonoBehaviour, IInputClickHandler
 
     public GameObject AddressDialog;
     public InputField AddressInputField;
+    public Text Title;
 
     public GameObject Navigator;
     public GameObject SpatialMapping;
@@ -18,26 +20,20 @@ public class NavigationController : MonoBehaviour, IInputClickHandler
 
     public GameObject ErrorScreen;
 
-    private bool onConnected = false;
-    private bool onDisconnected = false;
+    private Queue<Action> actionDoMainThreads = new Queue<Action>();
 
     private void Start()
     {
         InputManager.Instance.AddGlobalListener(gameObject);
     }
 
-    private void LateUpdate()
+    private void Update()
     {
-        if (onConnected)
+        while (actionDoMainThreads.Count > 0)
         {
-            _OnConnected();
-            onConnected = false;
-        }
+            var action = actionDoMainThreads.Dequeue();
 
-        if (onDisconnected)
-        {
-            _OnDisconnected();
-            onDisconnected = false;
+            action?.Invoke();
         }
     }
 
@@ -51,30 +47,54 @@ public class NavigationController : MonoBehaviour, IInputClickHandler
 
     public void OnConnected()
     {
-        onConnected = true;
+        actionDoMainThreads.Enqueue(() =>
+        {
+            _OnConnected();
+        });
+    }
+
+    public void OnRouteChanged()
+    {
+        actionDoMainThreads.Enqueue(() =>
+        {
+            _OnRouteChanged();
+        });
     }
 
     public void OnDisconnected()
     {
-        onDisconnected = true;
+        actionDoMainThreads.Enqueue(() =>
+        {
+            _OnDisconnected();
+        });
     }
 
     private void _OnConnected()
     {
+        Title.text = "Android待機中...";
+    }
+
+    private void _OnRouteChanged()
+    {
+        Debug.Log("_OnRouteChanged 0");
         SceneContent.transform.Find("WebSocket").gameObject.SetActive(false);
+        Debug.Log("_OnRouteChanged 1");
 
         SpatialMapping.SetActive(true);
+        Debug.Log("_OnRouteChanged 2");
 
         RegressionLine.GetComponent<LineRenderer>().gameObject.SetActive(true);
-        Navigator.SetActive(true);
+        Debug.Log("_OnRouteChanged 3");
+        // Navigator.SetActive(true);
 
         SceneContent.transform.Find("Navigation").gameObject.SetActive(true);
+        Debug.Log("_OnRouteChanged 4");
     }
 
     private void _OnDisconnected()
     {
         SceneContent.transform.Find("Navigation").gameObject.SetActive(false);
-        Navigator.SetActive(false);
+        // Navigator.SetActive(false);
 
         RegressionLine.GetComponent<LineRenderer>().gameObject.SetActive(false);
         SpatialMapping.SetActive(false);

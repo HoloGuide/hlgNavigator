@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using HoloGuide;
+using System;
 
 public class Navigator : MonoBehaviour
 {
+    public NavigationController NavController;
     public LineRenderer GuideLine;
     public LocateMap locateMap;
     public RoomLoader roomLoader;
@@ -25,18 +27,42 @@ public class Navigator : MonoBehaviour
     }
     private Setting _setting = null;
 
+    public Route route
+    {
+        get
+        {
+            return _route;
+        }
+        set
+        {
+            actionDoMainThreads.Enqueue(() =>
+            {
+                OnRouteChanged(value);
+            });
+            _route = value;
+        }
+    }
+    private Route _route = null;
+
+    private Queue<Action> actionDoMainThreads = new Queue<Action>();
+
     private void OnSettingChanged(Setting set)
     {
         // 設定変更時に呼ばれる
-        Debug.Log("Setting/dummy: " + set.dummy);
+        
     }
 
-    private void OnRouteChanged(/*Route route*/)
+    private void OnRouteChanged(Route route)
     {
+        Debug.Log("Navigator OnRouteChanged called.");
+        NavController.OnRouteChanged();
+
         // var map = MapLoader.Load(route.map);
-        var map = MapLoader.Load(@"F:\ziyuu29\map_test.json");
+        var map = MapLoader.Load(route.filename);
+        Debug.Log("Loading map ok.");
+
         // Navigate(map, route.src, map.dst);
-        Navigate(map, 1, 6);
+        Navigate(map, route.start, route.goal);
 
         locateMap.AnchorID = map.AnchorId;
         roomLoader.RoomId = map.RoomId;
@@ -65,6 +91,11 @@ public class Navigator : MonoBehaviour
 
     private void Update()
     {
+        while (actionDoMainThreads.Count > 0)
+        {
+            var action = actionDoMainThreads.Dequeue();
 
+            action?.Invoke();
+        }
     }
 }

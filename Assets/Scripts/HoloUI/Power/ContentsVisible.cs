@@ -9,7 +9,7 @@ public class ContentsVisible : MonoBehaviour {
     public GameObject route;
     //public GameObject line;
     public GameObject clock;
-    public GameObject notice;
+    // public GameObject notice;
     public GameObject OverRayContent;
     public GameObject menu;
     public bool editMode;
@@ -65,16 +65,16 @@ public class ContentsVisible : MonoBehaviour {
 
         }
 
-        if (powerSetting.noticePower == true)
-        {
-            notice.SetActive(true);
+        //if (powerSetting.noticePower == true)
+        //{
+        //    notice.SetActive(true);
 
-        }
-        else
-        {
-            notice.SetActive(false);
+        //}
+        //else
+        //{
+        //    notice.SetActive(false);
 
-        }
+        //}
 
     }
 
@@ -139,16 +139,16 @@ public class ContentsVisible : MonoBehaviour {
 
         }
 
-        if (powerSetting.noticePower == true)
-        {
-            notice.SetActive(true);
+        //if (powerSetting.noticePower == true)
+        //{
+        //    notice.SetActive(true);
 
-        }
-        else
-        {
-            notice.SetActive(false);
+        //}
+        //else
+        //{
+        //    notice.SetActive(false);
 
-        }
+        //}
         
         menu.SetActive(false);
 

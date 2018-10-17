@@ -22,7 +22,7 @@ public class WebSocketManager : Singleton<WebSocketManager>
     public string URI { get; private set; }
 
     private const float RECONNECT_INTERVAL = 10.0f; // s
-    private bool Connected = false;
+    private static bool Connected = false;
 
     private Action actionDoMainThread = null;
 
@@ -118,8 +118,6 @@ public class WebSocketManager : Singleton<WebSocketManager>
                 Debug.Log("Reconnecting...");
                 Invoke("Connect", RECONNECT_INTERVAL);
             }
-            
-
         };
         
         // サーバー接続開始

@@ -22,6 +22,9 @@ public class JsonParser : Singleton<JsonParser>
                 // 設定
                 navigator.setting = JsonConvert.DeserializeObject<HoloGuide.Setting>(json);
                 break;
+            case "route":
+                navigator.route = JsonConvert.DeserializeObject<HoloGuide.Route>(json);
+                break;
             case "location":
                 // 位置情報変更時
                 var location = JsonConvert.DeserializeObject<HoloGuide.Location>(json);
@@ -52,6 +55,22 @@ namespace HoloGuide
         public double lat { get; set; }
         public double lng { get; set; }
         public long updated { get; set; }
+    }
+
+    [System.Serializable]
+    public class Route
+    {
+        public string type { get; set; }
+        public string filename { get; set; }
+        public int start { get; set; }
+        public int goal { get; set; }
+    }
+
+    [System.Serializable]
+    public class State
+    {
+        public string type = "state";
+        public bool isNavigating;
     }
 
 }

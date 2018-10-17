@@ -41,6 +41,7 @@ public class LocateMap : MonoBehaviour
         m_anchorStore = store;
 
         m_anchorSaveManager = new AnchorSaveManager(m_anchorStore, gameObject);
+        m_anchorSaveManager.FileName = AnchorID;
 
         bool loaded = false;
         string[] ids = m_anchorStore.GetAllIds();
